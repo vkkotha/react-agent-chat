@@ -31,13 +31,26 @@ Simple Chat is a web-based chat interface that allows users to interact with Ope
 
 ### Prerequisites
 
-- Python 3.6+
+- Python 3.8+
 - OpenAI API key
+- uv (recommended) - A fast Python package installer and resolver
 
 ### Installation
 
 1. Clone the repository or download the source files
 2. Navigate to the project directory
+
+#### Installing uv (recommended)
+
+If you don't have uv installed, you can install it using:
+
+```bash
+# On macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# On Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
 
 ### Configuration
 
@@ -55,9 +68,30 @@ const OPENAI_API_TOKEN = "your-openai-api-key-here";
 python server.py
 ```
 
-2. The server will automatically install any missing dependencies and start serving the application
+2. The server will automatically install any missing dependencies using uv (or pip as fallback) and start serving the application
 3. Open your browser and navigate to `http://localhost:5500` (default port)
 4. The server supports live reloading, so any changes to HTML files will automatically refresh the browser
+
+### Using uv for Development
+
+If you want to manually manage dependencies with uv:
+
+```bash
+# Create a virtual environment
+uv venv
+
+# Activate the virtual environment
+# On macOS/Linux
+source .venv/bin/activate
+# On Windows
+.venv\Scripts\activate
+
+# Install dependencies
+uv pip install -r requirements.txt
+
+# Add a new dependency
+uv pip install package-name
+```
 
 ## Usage
 
