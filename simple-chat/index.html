@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Ignore favicon -->
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon" />
+
+    <!-- Tailwind -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <!-- React -->
+    <script src="https://cdn.jsdelivr.net/npm/umd-react/dist/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/umd-react/dist/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+
+    <style type="text/tailwindcss">
+      @utility scrollbar-hidden {
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="chat"></div>
+
+    <!-- React App -->
+    <script
+      type="text/babel"
+      data-type="module"
+      data-presets="react, typescript"
+    >
+      import { twMerge } from "https://cdn.jsdelivr.net/npm/tailwind-merge@3.0.2/dist/bundle-mjs.min.mjs";
+      import Markdown from "https://cdn.jsdelivr.net/npm/react-markdown@10/+esm";
+      import remarkGfm from "https://cdn.jsdelivr.net/npm/remark-gfm@4/+esm";
+      import { Prism as SyntaxHighlighter } from "https://cdn.jsdelivr.net/npm/react-syntax-highlighter@15.6.1/dist/esm/+esm";
+      import { default as codeStyle } from "https://cdn.jsdelivr.net/npm/react-syntax-highlighter@15.6.1/dist/esm/styles/prism/one-light/+esm";
+
+      const {
+        useState,
+        createContext,
+        useContext,
+        useReducer,
+        useMemo,
+        useCallback,
+        useEffect,
+      } = React;
+
+      const OPENAI_API_TOKEN =
+        "<openai_api_token>";
+
+      const INITIAL_MESSAGES = [
+        {
+          role: "user",
+          content: "My name is John Doe. What can you help me with?",
+        },
+        {
+          role: "assistant",
+          content: "I am **Agent**. How can I help you today?",
+        },
+        {
+          role: "user",
+          content: "Write me some sample python code",
+        },
+        {
+          role: "assistant",
+          content:
+            "The is a sample code for a simple python program that prints " +
+            ' "Hello, world!" to the console.\n' +
+            "```python\n" +
+            "def __main__():\n" +
+            '    print("Hello, world!")\n' +
+            "```",
+        },
+      ];
+
+      function Header() {
+        return (
+          <div className="mb-2 text-2xl flex flex-row items-center p-2 shadow-sm">
+            <Logo className="mr-2" />
+            <h1>Chat With Agent</h1>
+          </div>
+        );
+      }
+
+      function Logo({ className, ...props }) {
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className={twMerge(`size-6 ${className || ""}`)}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+            />
+          </svg>
+        );
+      }
+
+      function AIChatAvatar({ className, ...props }) {
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className={twMerge(`size-6 ${className || ""}`)}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
+            />
+          </svg>
+        );
+      }
+
+      function RoundedButton({ className, tooltip, ...props }) {
+        const roundedButton = (
+          <div
+            className={twMerge(
+              `flex items-center justify-center cursor-pointer select-none border-1 rounded-full text-balck text-sm bg-white border-slate-300 hover:bg-gray-100 active:bg-gray-400 ${
+                className || ""
+              }`
+            )}
+            onClick={props.onClick}
+          >
+            <span className={`w-8 h-8 flex justify-center items-center`}>
+              {props.children}
+            </span>
+          </div>
+        );
+
+        return tooltip ? (
+          <Tooltip message={tooltip}>{roundedButton}</Tooltip>
+        ) : (
+          roundedButton
+        );
+      }
+
+      function Tooltip({ message, children }) {
+        return (
+          <div className="group relative flex">
+            {children}
+            {message && (
+              <span className="absolute left-10 bottom-5 scale-0 transition-all rounded bg-gray-800 p-2 text-xs text-white group-hover:scale-100">
+                {message}
+              </span>
+            )}
+          </div>
+        );
+      }
+
+      function PillButton({ className, ...props }) {
+        return (
+          <div
+            className={twMerge(
+              `flex items-center justify-center cursor-pointer select-none border-1 rounded-2xl text-balck text-sm bg-white border-slate-300  hover:bg-gray-100 active:bg-gray-400 pl-2 pr-2 gap-2 ${
+                className || ""
+              }`
+            )}
+            onClick={props.onClick}
+          >
+            <span className={`min-w-16 h-8 flex justify-center items-center`}>
+              {props.children}
+            </span>
+          </div>
+        );
+      }
+
+      function Chat() {
+        return (
+          <div className="flex flex-col h-screen font-sans">
+            <Header />
+            <ChatProvider initialMessages={INITIAL_MESSAGES}>
+              <ChatPanel className="h-[calc(100vh-58px)]" />
+            </ChatProvider>
+          </div>
+        );
+      }
+
+      function ChatPanel({ className, ...props }) {
+        const stream = true;
+        return (
+          <div
+            className={twMerge(
+              `flex items-center h-screen flex-col pl-4 pr-4 justify-content-between gap-2 ${
+                className || ""
+              }`
+            )}
+          >
+            <ChatMessages stream={stream} />
+            <ChatInput className="mb-4" stream={stream} />
+          </div>
+        );
+      }
+
+      function useScollToBottom(bottomRef, contentLoading=false) {
+        const [isBottom, setIsBottom] = useState(false);
+
+        useEffect(() => {
+          const observer = new IntersectionObserver(([entry]) => {
+            setIsBottom(contentLoading || entry.isIntersecting);
+          });
+
+          if (bottomRef.current) {
+            observer.observe(bottomRef.current);
+          }
+
+          return () => {
+            if (bottomRef.current) {
+              observer.unobserve(bottomRef.current);
+            }
+          };
+        }, [bottomRef, contentLoading]);
+
+        function scrollToBottom() {
+          bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
+
+        return {
+          isBottom,
+          scrollToBottom
+        }
+      }
+
+      function ChatMessages({ className, stream = false, ...props }) {
+        const { messages, isLoading } = useChat(stream);
+        const messagesEndRef = React.useRef(null);
+        const { isBottom, scrollToBottom } = useScollToBottom(messagesEndRef, isLoading);
+
+        useEffect(() => {
+          scrollToBottom();
+        }, [messages]);
+
+        return (
+          <div
+            className={twMerge(
+              `justify-self-center flex flex-col md:w-[70%] lg:w-[50%] w-full flex-grow overflow-auto overscroll-contain scrollbar-hidden ${
+                className || ""
+              }`
+            )}
+          >
+            {messages.map((message, index) =>
+              message.role?.toLowerCase() === "assistant" ? (
+                <AIChatMessage message={message} />
+              ) : message.role?.toLowerCase() === "user" ? (
+                <UserChatMessage message={message} />
+              ) : null
+            )}
+            <div ref={messagesEndRef}></div>
+            {!isBottom && (
+              <div className="fixed bottom-34 justify-center border-red-500 left-[50%]">
+                <RoundedButton
+                  className="rotate-90 bg-white"
+                  onClick={scrollToBottom}
+                >
+                  &#10143;
+                </RoundedButton>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      function UserChatMessage({ message, ...props }) {
+        return (
+          <div className="user-message,flex flex-row-reverse mb-1 mt-1 pt-2 pb-2 ml-[10%] justify-items-end">
+            <div className="bg-neutral-400/20 p-6 pt-3 pb-3 rounded-3xl shadow-xs">
+              {message?.content || ""}
+            </div>
+          </div>
+        );
+      }
+
+      function AIChatMessageContent({ message, ...props }) {
+        console.log("AIChatMessage Rendering...", message.content.substring(0, 50));
+        return (
+          <Markdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              code(props) {
+                const { children, className, node, ...rest } = props;
+                const match = /language-(\w+)/.exec(className || "");
+                return match ? (
+                  <SyntaxHighlighter
+                    {...rest}
+                    PreTag="div"
+                    children={String(children).replace(/\n$/, "")}
+                    language={match[1]}
+                    style={codeStyle}
+                  />
+                ) : (
+                  <code {...rest} className={className}>
+                    {children}
+                  </code>
+                );
+              },
+            }}
+          >
+            {message?.content || ""}
+          </Markdown>
+        );
+      }
+
+      function AIChatMessage({ showChatIcon = true, message, ...props }) {
+        return (
+          <div className="ai-message, flex flex-row mb-1 mt-1 pt-2 pb-2">
+            {showChatIcon && (
+              <div className="flex">
+                <AIChatAvatar className="mr-2 mt-1" />
+              </div>
+            )}
+            <div className="pl-1 border-l-slate-400 mr-2 w-screen">
+              <AIChatMessageContent message={message} />
+            </div>
+          </div>
+        );
+      }
+
+      function ChatInput({ className, stream = false, ...props }) {
+        const [inputMessage, setInputMessage] = useState("");
+        const { messages, sendMessage, isLoading } = useChat(stream);
+
+        const handleKeyPress = (e) => {
+          if (!e.shiftKey && e.key === "Enter") {
+            e.preventDefault();
+            submitMessage(e);
+          }
+        };
+
+        const submitMessage = (e) => {
+          if (inputMessage.trim()) {
+            setInputMessage("");
+            const message = { role: "user", content: inputMessage };
+            sendMessage(message);
+          }
+        };
+
+        const cancelSubmit = () => {};
+
+        return (
+          <div
+            className={twMerge(
+              `justify-self-center lg:w-[50%] md:w-[70%] w-full flex flex-col p-2 rounded-3xl shadow-lg border-1 border-slate-300 flex-grow-0 ${
+                className || ""
+              }`
+            )}
+          >
+            <textarea
+              id="inputMessage"
+              className="w-full outline-none h-12 resize-none border-transparent overflow-auto scrollbar-hidden ml-2 mr-2"
+              placeholder="Enter your message"
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={(e) => handleKeyPress(e)}
+              value={inputMessage}
+            />
+            <div className="flex items-center mt-2">
+              <div className="flex-grow flex flex-row justify-start">
+                <ChatTools></ChatTools>
+              </div>
+              {isLoading && (
+                <RoundedButton
+                  className="flex-grow-0 border-gray-600 bg-gray-800 hover:bg-gray-600 text-white"
+                  onClick={cancelSubmit}
+                >
+                  &#9744;
+                </RoundedButton>
+              )}
+              {!isLoading && (
+                <RoundedButton
+                  className="flex-grow-0 border-gray-600 bg-gray-800 hover:bg-gray-600 text-white"
+                  onClick={submitMessage}
+                >
+                  &#10132;
+                </RoundedButton>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      function ChatTools() {
+        return (
+          <div className="flex flex-row gap-2">
+            <RoundedButton tooltip="Configure">&#9881;</RoundedButton>
+            <PillButton>
+              &#x1F4CE;<span className="ml-2 mr-2">Upload</span>
+            </PillButton>
+          </div>
+        );
+      }
+
+      const ChatContext = createContext(null);
+      const ChatDispatchContext = createContext(null);
+
+      function chatReducer(chatContext, action) {
+        switch (action.type) {
+          case "ADD_MESSAGE": {
+            return {
+              ...chatContext,
+              messages: [...chatContext.messages, action.payload]
+            }
+          }
+          case "ADD_CHUNK": {
+            const curMessages = [...chatContext.messages];
+            const lastMessage = curMessages.pop();
+            const prevMessages = curMessages.slice();
+            if (lastMessage && lastMessage.role === "assistant") {
+              const updatedMessage = {
+                ...lastMessage,
+                content: lastMessage.content + action.payload.content,
+              };
+              return {
+                ...chatContext,
+                messages: [...prevMessages, updatedMessage]
+              }
+            } else {
+              return {
+                ...chatContext,
+                messages: [...chatContext.messages, action.payload]
+              }
+            }
+          }
+          case "SET_LOADING": {
+            return {
+              ...chatContext,
+              isLoading: action.payload
+            }
+          }
+          case "SET_ERRORS": {
+            return {
+              ...chatContext,
+              errors: action.payload
+            }
+          }
+          default: {
+            throw Error("Unknown action: " + action.type);
+          }
+        }
+      }
+
+      function useChat(stream = false) {
+        const dispatch = useContext(ChatDispatchContext);
+        const {messages, isLoading, errors} = useContext(ChatContext);
+        const { data, submitApi, isLoading: isApiLoading, errors: apiErrors } = useOpenAiApi(stream);
+
+        useEffect(() => {
+          if (data) {
+            if (stream) {
+              const message = { role: "assistant", content: data };
+              addChunk(message);
+            } else {
+              const message = { role: "assistant", content: data };
+              addMessage(message);
+            }
+          }
+        }, [data]);
+
+        useEffect(() => {
+          setIsLoading(isApiLoading);
+        }, [isApiLoading]);
+
+        useEffect(() => {
+          setErrors(apiErrors);
+        }, [apiErrors]);
+
+        function sendMessage(message) {
+          addMessage(message);
+          submitApi([...messages, message], null, OPENAI_API_TOKEN);
+        }
+
+        function addMessage(message) {
+          console.debug("EVENT: ADD_MESSAGE", message);
+          dispatch({
+            type: "ADD_MESSAGE",
+            payload: message,
+          });
+        }
+
+        function addChunk(chunk) {
+          console.debug("EVENT: ADD_CHUNK", chunk);
+          dispatch({
+            type: "ADD_CHUNK",
+            payload: chunk,
+          });
+        }
+
+        function setIsLoading(isLoading) {
+          console.debug("EVENT: SET_LOADING", isLoading);
+          dispatch({
+            type: "SET_LOADING",
+            payload: isLoading || false
+          })
+        }
+
+        function setErrors(errors) {
+          console.debug("EVENT: SET_ERRORS", errors);
+          dispatch({
+            type: "SET_ERRORS",
+            payload: errors
+          })
+        }
+
+        return {
+          messages: messages,
+          sendMessage: sendMessage,
+          isLoading: isLoading,
+          errors: errors
+        };
+      }
+
+      function useApi(apiRequest) {
+        const [data, setData] = useState(null);
+        const [isLoading, setIsLoading] = useState(false);
+        const [errors, setErrors] = useState(null);
+
+        const submitApi = useCallback(async (...args) => {
+          try {
+            setIsLoading(true);
+            const response = await apiRequest(...args);
+            if (!response.ok) {
+              throw new Error(`Response status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setData(data.output[0].content[0].text);
+          } catch (e) {
+            setErrors(e);
+          } finally {
+            setIsLoading(false);
+          }
+        }, []);
+
+        return {
+          data: data,
+          isLoading: isLoading,
+          errors: errors,
+          submitApi: submitApi,
+        };
+      }
+
+      function useStreamingApi(apiRequest) {
+        const [data, setData] = useState("");
+        const [isLoading, setIsLoading] = useState(false);
+        const [errors, setErrors] = useState(null);
+
+        let chunk = "";
+        const submitApi = useCallback(async (...args) => {
+          try {
+            setIsLoading(true);
+            const response = await apiRequest(...args);
+            if (!response.ok) {
+              throw new Error(`Response status: ${response.status}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let partialData = "";
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) {
+                break;
+              }
+              partialData += decoder.decode(value, { stream: true });
+              const lines = partialData.split("\n");
+              partialData = lines.pop() || "";
+              let delta = "";
+              lines.forEach((line) => {
+                if (line.startsWith("data:")) {
+                  try {
+                    const eventData = JSON.parse(line.substring(5).trim());
+                    if (eventData.type === "response.output_text.delta") {
+                      delta += eventData.delta;
+                    }
+                  } catch (e) {
+                    console.error("Error parsing event data", e);
+                  }
+                }
+              });
+              setData(delta);
+            }
+          } catch (e) {
+            console.error(e, chunk);
+            setErrors(e);
+          } finally {
+            setIsLoading(false);
+          }
+        }, []);
+
+        return {
+          data: data,
+          isLoading: isLoading,
+          errors: errors,
+          submitApi: submitApi,
+        };
+      }
+
+      function useOpenAiApi(stream = false) {
+        const getDataApi = useCallback(async (input, config = {}, token) => {
+          const payload = {
+            model: config?.model ?? "gpt-4o",
+            input: input,
+            stream: stream,
+          };
+          return fetch("https://api.openai.com/v1/responses", {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          });
+        });
+        if (stream) {
+          return useStreamingApi(getDataApi);
+        }
+        return useApi(getDataApi);
+      }
+
+      function ChatProvider({ initialMessages = [], children }) {
+        const [chatContext, dispatch] = useReducer(chatReducer, {messages: initialMessages});
+
+        return (
+          <ChatContext.Provider value={chatContext}>
+            <ChatDispatchContext.Provider value={dispatch}>
+              {children}
+            </ChatDispatchContext.Provider>
+          </ChatContext.Provider>
+        );
+      }
+
+      const container = document.getElementById("chat");
+      const root = ReactDOM.createRoot(container);
+      root.render(<Chat />);
+    </script>
+  </body>
+</html>
