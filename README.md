@@ -30,7 +30,7 @@ TODO:
 - Upload content and Multimodal support.
   
 Roadmap:
-- Confiuration UI to allow selecting agent, llm.
+- Configuration UI to allow selecting agent, llm.
 - Pre Configured endpoints like Agents, Models, Custom APIs etc..
 - Show Agent/LLM returned options as pills, that user can select as next action.
 - Support additional actions after AI response. Ex: like, dislike, copy, regenerate etc...
