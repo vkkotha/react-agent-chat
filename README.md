@@ -11,32 +11,13 @@ A lightweight chat application built with React and Tailwind CSS that connects t
   <img src="https://github.com/user-attachments/assets/df831432-b0c3-4094-8241-e8322e94ee7f" width="80%"/>
 </p>
 
-#### Features:
-- Single HTML page UI with minimal dependencies
-- AI & User message display
-- Multiline chat input with Send action and working indicator
-- Streaming chat output
-- Automatic scroll to bottom
-- Hidden scrollbars for cleaner interface
-- Formatted code and markdown in responses
+#### Quick Start:
+1. Navigate to the `simple-chat` directory
+2. Copy `config.json.sample` to `config.json` and add your OpenAI API key
+3. Start the server with `python server.py` or `python -m http.server`
+4. Open your browser to the provided URL (default: http://localhost:5500 or http://localhost:8000)
 
-#### Limitations:
-- Performance constraints due to scripts loaded from CDN
-- Limited features (intended for demonstration purposes)
-
-#### TODO:
-- Configuration UI to enter credentials and store in local storage
-- Configuration toggle for streaming mode
-- Upload content and multimodal support
-  
-#### Roadmap:
-- Configuration UI to allow selecting agent and LLM
-- Pre-configured endpoints for Agents, Models, Custom APIs, etc.
-- Display Agent/LLM returned options as pills that users can select for next actions
-- Support additional actions after AI response (like, dislike, copy, regenerate, etc.)
-- Custom React component for rendering AI Response
-- Conversation state display
-- Server-side conversation support
+For detailed information about features, installation, configuration, and usage, please see the [simple-chat README](simple-chat/README.md).
 
 ## License
 

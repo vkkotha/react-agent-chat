@@ -123,6 +123,27 @@ uv pip install package-name
 
 The application can be customized by modifying the React components in the `index.html` file. The UI is built with Tailwind CSS, making it easy to adjust styles and layout.
 
+## Limitations
+
+- Performance constraints due to scripts loaded from CDN
+- Limited features (intended for demonstration purposes)
+
+## TODO
+
+- Configuration UI to enter credentials and store in local storage
+- Configuration toggle for streaming mode
+- Upload content and multimodal support
+
+## Roadmap
+
+- Configuration UI to allow selecting agent and LLM
+- Pre-configured endpoints for Agents, Models, Custom APIs, etc.
+- Display Agent/LLM returned options as pills that users can select for next actions
+- Support additional actions after AI response (like, dislike, copy, regenerate, etc.)
+- Custom React component for rendering AI Response
+- Conversation state display
+- Server-side conversation support
+
 ## License
 
 This project is open source and available under the MIT License.
