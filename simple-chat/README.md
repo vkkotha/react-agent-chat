@@ -71,9 +71,9 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
     
     **With http server**
     ```bash
-    python -m http.server
+    python -m http.server 8000
     ```
-    navigate to [http://localhost:8000](http://localhost:8000) (default)
+    navigate to [http://localhost:8000](http://localhost:8000)
     
     OR
     

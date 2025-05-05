@@ -14,8 +14,8 @@ A lightweight chat application built with React and Tailwind CSS that connects t
 #### Quick Start:
 1. Navigate to the `simple-chat` directory
 2. Copy `config.json.sample` to `config.json` and add your OpenAI API key
-3. Start the server with `python server.py` or `python -m http.server`
-4. Open your browser to the provided URL (default: http://localhost:5500 or http://localhost:8000)
+3. Start the server with `python -m http.server 8000`
+4. Open your browser to the provided URL [http://localhost:8000](http://localhost:8000)
 
 For detailed information about features, installation, configuration, and usage, please see the [simple-chat README](simple-chat/README.md).
 
