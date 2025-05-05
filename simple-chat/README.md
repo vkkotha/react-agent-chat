@@ -54,23 +54,36 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 ### Configuration
 
-1. Open `index.html` and replace the placeholder in the `OPENAI_API_TOKEN` constant with your actual OpenAI API key:
+1. Copy `config.json.sample` to `config.json`
+2. Open `config.json` and replace the placeholder in the `OPENAI_API_TOKEN` constant with your actual OpenAI API key:
 
 ```javascript
-const OPENAI_API_TOKEN = "your-openai-api-key-here";
+{
+  "openai": {
+      "api_token": "OPENAI_API_TOKEN"
+  }
+}
 ```
 
 ### Running the Application
 
-1. Start the Python server:
+1. Start the Python server in current folder
+    
+    **With http server**
+    ```bash
+    python -m http.server
+    ```
+    navigate to [http://localhost:8000](http://localhost:8000) (default)
+    
+    OR
+    
+    **With live reload**
 
-```bash
-python server.py
-```
-
-2. The server will automatically install any missing dependencies using uv (or pip as fallback) and start serving the application
-3. Open your browser and navigate to `http://localhost:5500` (default port)
-4. The server supports live reloading, so any changes to HTML files will automatically refresh the browser
+    Note: *server will automatically install dependencies*
+    ```bash
+    python server.py
+    ```
+    navigate to [http://localhost:5500](http://localhost:5500) (default for livereload)
 
 ### Using uv for Development
 

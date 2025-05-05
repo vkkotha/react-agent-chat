@@ -6,14 +6,6 @@
     <!-- Ignore favicon -->
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon" />
 
-    <!-- Tailwind -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-    <!-- React -->
-    <script src="https://cdn.jsdelivr.net/npm/umd-react/dist/react.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/umd-react/dist/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
-
     <style type="text/tailwindcss">
       @utility scrollbar-hidden {
         &::-webkit-scrollbar {
@@ -30,18 +22,31 @@
     <div id="chat"></div>
 
     <!-- React App -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@19.1",
+          "react-dom/client": "https://esm.sh/react-dom@19.1/client",
+          "react-markdown": "https://esm.sh/react-markdown@10",
+          "remark-gfm": "https://esm.sh/remark-gfm@4",
+          "react-syntax-highlighter": "https://esm.sh/react-syntax-highlighter@15",
+          "react-syntax-highlighter/dist/esm/styles/prism/one-light": "https://esm.sh/react-syntax-highlighter@15/dist/esm/styles/prism/one-light",
+          "tailwindcss/browser": "https://esm.sh/@tailwindcss/browser@4",
+          "tailwind-merge": "https://esm.sh/tailwind-merge@3.0",
+          "babel": "https://esm.sh/@babel/standalone@7.27"
+        }
+      }
+    </script>
+    <script type="module">
+      import "babel";
+    </script>
     <script
       type="text/babel"
       data-type="module"
       data-presets="react, typescript"
     >
-      import { twMerge } from "https://cdn.jsdelivr.net/npm/tailwind-merge@3.0.2/dist/bundle-mjs.min.mjs";
-      import Markdown from "https://cdn.jsdelivr.net/npm/react-markdown@10/+esm";
-      import remarkGfm from "https://cdn.jsdelivr.net/npm/remark-gfm@4/+esm";
-      import { Prism as SyntaxHighlighter } from "https://cdn.jsdelivr.net/npm/react-syntax-highlighter@15.6.1/dist/esm/+esm";
-      import { default as codeStyle } from "https://cdn.jsdelivr.net/npm/react-syntax-highlighter@15.6.1/dist/esm/styles/prism/one-light/+esm";
-
-      const {
+      import "tailwindcss/browser";
+      import React, {
         useState,
         createContext,
         useContext,
@@ -49,19 +54,24 @@
         useMemo,
         useCallback,
         useEffect,
-      } = React;
+      } from "react"
+      import ReactDOM from "react-dom/client";
 
-      const OPENAI_API_TOKEN =
-        "<openai_api_token>";
+      import { twMerge } from "tailwind-merge";
+      import Markdown from "react-markdown";
+      import remarkGfm from "remark-gfm";
+      import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+      import { default as codeStyle } from "react-syntax-highlighter/dist/esm/styles/prism/one-light";
+      import config from "./config.json" with { type: "json" };
 
       const INITIAL_MESSAGES = [
         {
           role: "user",
-          content: "My name is John Doe. What can you help me with?",
+          content: "My name is John Doe. Hi there!",
         },
         {
           role: "assistant",
-          content: "I am **Agent**. How can I help you today?",
+          content: "Hello! 👋 I’m your virtual assistant. How can I help you today?",
         },
         {
           role: "user",
@@ -254,9 +264,9 @@
           >
             {messages.map((message, index) =>
               message.role?.toLowerCase() === "assistant" ? (
-                <AIChatMessage message={message} />
+                <AIChatMessage key={index} message={message} />
               ) : message.role?.toLowerCase() === "user" ? (
-                <UserChatMessage message={message} />
+                <UserChatMessage key={index} message={message} />
               ) : null
             )}
             <div ref={messagesEndRef}></div>
@@ -285,7 +295,7 @@
       }
 
       function AIChatMessageContent({ message, ...props }) {
-        console.log("AIChatMessage Rendering...", message.content.substring(0, 50));
+        // console.log("AIChatMessage Rendering...", message.content.substring(0, 50));
         return (
           <Markdown
             remarkPlugins={[remarkGfm]}
@@ -478,7 +488,7 @@
 
         function sendMessage(message) {
           addMessage(message);
-          submitApi([...messages, message], null, OPENAI_API_TOKEN);
+          submitApi([...messages, message], null, config.openai.api_token);
         }
 
         function addMessage(message) {
@@ -611,7 +621,7 @@
       function useOpenAiApi(stream = false) {
         const getDataApi = useCallback(async (input, config = {}, token) => {
           const payload = {
-            model: config?.model ?? "gpt-4o",
+            model: config?.model ?? "gpt-4o-mini",
             input: input,
             stream: stream,
           };

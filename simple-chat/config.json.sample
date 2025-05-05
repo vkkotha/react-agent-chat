@@ -1,0 +1,5 @@
+{
+    "openai": {
+        "api_token": "OPENAI_API_TOKEN"
+    }
+}
