@@ -11,7 +11,3 @@ A lightweight chat application built with React and Tailwind CSS that connects t
   <img src="https://github.com/user-attachments/assets/df831432-b0c3-4094-8241-e8322e94ee7f" width="80%"/>
 </p>
 
-
-## Updates
-
-- 2025-03-19: Updated simple-chat with Python setup using uv, a fast Python package installer and resolver
